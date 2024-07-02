@@ -1,15 +1,25 @@
 use skia_safe::{rrect::Corner, Path, Point, RRect, Rect};
 
-pub fn superellipse(n: f32, center: Point, radius: Point) -> Path {
-    generate_path(crate::superellipse_points(n, center.into(), radius.into()))
-}
+use crate::{Corners, Superellipse, SuperellipseRect};
 
-pub fn superellipse_rect(n: f32, rect: Rect) -> Path {
-    generate_path(crate::superellipse_points_rect(n, rect.into()))
+impl Superellipse {
+    pub fn from_skia_rect(rect: Rect, exponent: f32) -> Self {
+        crate::Rect::from(rect).superellipse(exponent)
+    }
+    pub fn skia_path(&self) -> Path {
+        generate_path(self.points())
+    }
 }
-
-pub fn superellipse_rrect(n: f32, rrect: RRect) -> Path {
-    generate_path(crate::superellipse_rounded_rect_points(n, rrect.into()))
+impl SuperellipseRect {
+    pub fn from_skia_rrect(rrect: RRect, corner_exponents: Corners<f32>) -> Self {
+        Self {
+            rounded_rect: rrect.into(),
+            corner_exponents,
+        }
+    }
+    pub fn skia_path(&self) -> Path {
+        generate_path(self.points())
+    }
 }
 
 fn generate_path(mut points: impl Iterator<Item = crate::Point>) -> Path {
@@ -54,7 +64,7 @@ impl From<Rect> for crate::Rect {
 }
 impl From<RRect> for crate::RoundedRect {
     fn from(value: RRect) -> crate::RoundedRect {
-        let corner_radii = crate::CornerRadii {
+        let corner_radii = crate::Corners {
             top_right: value.radii(Corner::UpperRight).into(),
             bottom_right: value.radii(Corner::LowerRight).into(),
             bottom_left: value.radii(Corner::LowerLeft).into(),
