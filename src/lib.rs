@@ -3,7 +3,13 @@ pub mod partial;
 #[cfg(feature = "skia")]
 pub mod skia;
 
-/// if n == 2.0 this draws a circle
+/// This can draw several different shapes depending on the value of n:
+/// superellipse: n > 2
+/// ellipse: n = 2
+/// convex curved rhombus: 1 < n < 2
+/// rhombus: n = 1
+/// concave curved rhombus: 0 < n < 1
+/// rectangle: n = ±∞
 pub fn superellipse_points(n: f32, center: Point, radius: Point) -> impl Iterator<Item = Point> {
     partial::superellipse_points(0..360, n, center, radius)
 }
