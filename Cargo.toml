@@ -3,5 +3,8 @@ name = "superellipse"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+skia = ["dep:skia-safe"]
+
 [dependencies]
 skia-safe = { version = "0.73", optional = true }
