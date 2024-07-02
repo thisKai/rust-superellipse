@@ -5,18 +5,16 @@ use skia_safe::{rrect::Corner, Path, RRect};
 /// if n == 2.0 this draws a circle
 pub fn superellipse(n: f32, center_x: f32, center_y: f32, radius_x: f32, radius_y: f32) -> Path {
     let mut path = Path::new();
-    for angle in 0..360 {
-        let radians = PI * angle as f32 / 180.0;
 
-        let x = center_x + (radians.cos().abs().powf(2.0 / n) * radius_x * radians.cos().signum());
-        let y = center_y + (radians.sin().abs().powf(2.0 / n) * radius_y * radians.sin().signum());
+    let mut points = superellipse_points(0..360, n, center_x, center_y, radius_x, radius_y);
 
-        if angle == 0 {
-            path.move_to((x, y));
-        } else {
-            path.line_to((x, y));
-        }
+    let point = points.next().unwrap();
+    path.move_to(point);
+
+    for point in points {
+        path.line_to(point);
     }
+
     path.close();
     path
 }
