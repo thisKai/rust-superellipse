@@ -24,27 +24,24 @@ impl Superellipse {
         &self,
         angles_in_degrees: impl Iterator<Item = u32>,
     ) -> impl Iterator<Item = Point> {
-        let Self {
-            exponent,
-            center,
-            radius,
-        } = *self;
+        let superellipse = *self;
 
         angles_in_degrees
             .map(|degrees| PI * degrees as f32 / 180.0)
-            .map(move |radians| {
-                let x = center.x
-                    + (radians.cos().abs().powf(2.0 / exponent)
-                        * radius.x
-                        * radians.cos().signum());
-                let y = center.y
-                    + (radians.sin().abs().powf(2.0 / exponent)
-                        * radius.y
-                        * radians.sin().signum());
-
-                Point { x, y }
-            })
+            .map(move |radians| superellipse.point(radians))
     }
+    pub fn point(&self, radians: f32) -> Point {
+        parametric_equation(radians, self.center, self.radius, self.exponent)
+    }
+}
+
+pub fn parametric_equation(radians: f32, center: Point, radius: Point, exponent: f32) -> Point {
+    let x =
+        center.x + (radians.cos().abs().powf(2.0 / exponent) * radius.x * radians.cos().signum());
+    let y =
+        center.y + (radians.sin().abs().powf(2.0 / exponent) * radius.y * radians.sin().signum());
+
+    Point { x, y }
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
