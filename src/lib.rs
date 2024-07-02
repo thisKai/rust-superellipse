@@ -182,3 +182,13 @@ pub struct Corners<T> {
     pub bottom_left: T,
     pub bottom_right: T,
 }
+impl<T: Clone> Corners<T> {
+    pub fn all(value: T) -> Self {
+        Self {
+            top_left: value.clone(),
+            top_right: value.clone(),
+            bottom_left: value.clone(),
+            bottom_right: value,
+        }
+    }
+}
