@@ -1,4 +1,7 @@
-use std::f32::consts::PI;
+use std::{
+    f32::consts::PI,
+    ops::{Add, AddAssign, Sub, SubAssign},
+};
 
 #[cfg(feature = "skia")]
 pub mod skia;
@@ -115,12 +118,125 @@ impl SuperellipseRect {
             },
         }
     }
+    pub fn inset(&self, inset: Rect) -> Self {
+        let Self {
+            rounded_rect: RoundedRect { rect, corner_radii },
+            corner_exponents,
+        } = self;
+
+        let rect = rect.inset(inset);
+
+        let corner_radii = Corners {
+            top_left: Self::inset_corner(
+                corner_radii.top_left,
+                corner_exponents.top_left,
+                inset.top_left(),
+            ),
+            top_right: Self::inset_corner(
+                corner_radii.top_right,
+                corner_exponents.top_right,
+                inset.top_right(),
+            ),
+            bottom_right: Self::inset_corner(
+                corner_radii.bottom_right,
+                corner_exponents.bottom_right,
+                inset.bottom_right(),
+            ),
+            bottom_left: Self::inset_corner(
+                corner_radii.bottom_left,
+                corner_exponents.bottom_left,
+                inset.bottom_left(),
+            ),
+        };
+
+        Self {
+            rounded_rect: RoundedRect { rect, corner_radii },
+            corner_exponents: *corner_exponents,
+        }
+    }
+    pub fn inset_symmetrical(&self, inset: Point) -> Self {
+        let Self {
+            rounded_rect: RoundedRect { rect, corner_radii },
+            corner_exponents,
+        } = self;
+
+        let rect = rect.inset_symmetrical(inset);
+
+        let corner_radii = Corners {
+            top_left: Self::inset_corner(corner_radii.top_left, corner_exponents.top_left, inset),
+            top_right: Self::inset_corner(
+                corner_radii.top_right,
+                corner_exponents.top_right,
+                inset,
+            ),
+            bottom_right: Self::inset_corner(
+                corner_radii.bottom_right,
+                corner_exponents.bottom_right,
+                inset,
+            ),
+            bottom_left: Self::inset_corner(
+                corner_radii.bottom_left,
+                corner_exponents.bottom_left,
+                inset,
+            ),
+        };
+
+        Self {
+            rounded_rect: RoundedRect { rect, corner_radii },
+            corner_exponents: *corner_exponents,
+        }
+    }
+    fn inset_corner(radius: Point, exponent: f32, inset: Point) -> Point {
+        if exponent > 1.0 {
+            radius - inset
+        } else {
+            radius + inset
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
+}
+
+impl Add for Point {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+impl Add for &Point {
+    type Output = Point;
+    fn add(self, rhs: Self) -> Self::Output {
+        Point {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Sub for Point {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+impl Sub for &Point {
+    type Output = Point;
+    fn sub(self, rhs: Self) -> Self::Output {
+        Point {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
@@ -136,6 +252,30 @@ impl Rect {
     }
     pub fn height(&self) -> f32 {
         self.bottom - self.top
+    }
+    pub fn top_left(&self) -> Point {
+        Point {
+            x: self.left,
+            y: self.top,
+        }
+    }
+    pub fn top_right(&self) -> Point {
+        Point {
+            x: self.right,
+            y: self.top,
+        }
+    }
+    pub fn bottom_left(&self) -> Point {
+        Point {
+            x: self.left,
+            y: self.bottom,
+        }
+    }
+    pub fn bottom_right(&self) -> Point {
+        Point {
+            x: self.right,
+            y: self.bottom,
+        }
     }
     pub fn superellipse(&self, exponent: f32) -> Superellipse {
         let width = self.width();
@@ -156,6 +296,22 @@ impl Rect {
             radius,
         }
     }
+    pub fn inset(&self, inset: Self) -> Self {
+        Self {
+            left: self.left + inset.left,
+            right: self.right - inset.right,
+            top: self.top + inset.top,
+            bottom: self.bottom - inset.bottom,
+        }
+    }
+    pub fn inset_symmetrical(&self, inset: Point) -> Self {
+        Self {
+            left: self.left + inset.x,
+            right: self.right - inset.x,
+            top: self.top + inset.y,
+            bottom: self.bottom - inset.y,
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
@@ -169,6 +325,44 @@ impl RoundedRect {
             rounded_rect: self,
             corner_exponents,
         }
+    }
+    pub fn inset(&self, inset: Rect) -> Self {
+        let rect = self.rect.inset(inset);
+
+        let Corners {
+            top_left,
+            top_right,
+            bottom_left,
+            bottom_right,
+        } = self.corner_radii;
+
+        let corner_radii = Corners {
+            top_left: top_left - inset.top_left(),
+            top_right: top_right - inset.top_right(),
+            bottom_right: bottom_right - inset.bottom_right(),
+            bottom_left: bottom_left - inset.bottom_left(),
+        };
+
+        Self { rect, corner_radii }
+    }
+    pub fn inset_symmetrical(&self, inset: Point) -> Self {
+        let rect = self.rect.inset_symmetrical(inset);
+
+        let Corners {
+            top_left,
+            top_right,
+            bottom_left,
+            bottom_right,
+        } = self.corner_radii;
+
+        let corner_radii = Corners {
+            top_left: top_left - inset,
+            top_right: top_right - inset,
+            bottom_right: bottom_right - inset,
+            bottom_left: bottom_left - inset,
+        };
+
+        Self { rect, corner_radii }
     }
 }
 
