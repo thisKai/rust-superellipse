@@ -13,9 +13,10 @@ pub fn superellipse_points_rect(n: f32, rect: Rect) -> impl Iterator<Item = Poin
 
 pub fn superellipse_rounded_rect_points(
     n: f32,
-    rect: Rect,
-    corner_radii: CornerRadii,
+    rounded_rect: RoundedRect,
 ) -> impl Iterator<Item = Point> {
+    let RoundedRect { rect, corner_radii } = rounded_rect;
+
     let radius_bottom_right = corner_radii.bottom_right;
     let radius_bottom_left = corner_radii.bottom_left;
     let radius_top_left = corner_radii.top_left;
@@ -73,6 +74,11 @@ impl Rect {
     pub fn height(&self) -> f32 {
         self.bottom - self.top
     }
+}
+
+pub struct RoundedRect {
+    pub rect: Rect,
+    pub corner_radii: CornerRadii,
 }
 
 pub struct CornerRadii {
