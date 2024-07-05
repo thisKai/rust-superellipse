@@ -1,6 +1,6 @@
 use std::{
     f32::consts::PI,
-    ops::{Add, AddAssign, Sub, SubAssign},
+    ops::{Add, Sub},
 };
 
 #[cfg(feature = "skia")]
