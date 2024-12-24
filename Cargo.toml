@@ -8,3 +8,11 @@ skia = ["dep:skia-safe"]
 
 [dependencies]
 skia-safe = { version = "0.80.1", optional = true }
+
+[dev-dependencies]
+softbuffer = "0.4.6"
+winit = "0.30.7"
+
+[[example]]
+name = "skia-window"
+required-features = ["skia"]
